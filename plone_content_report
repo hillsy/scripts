@@ -1,0 +1,49 @@
+"""
+Generates a caret-delimited file of Plone content under a certain path, including:
+ * URL path
+ * Content type
+ * Title
+ * UID
+ 
+Usage: 
+ 1) Add as a 'Script (Python)' in Plone, ideally in portal_skins/custom
+ 2) Append the filename to the end of the section URL for which you'd like a report
+    e.g. http://mysite/foo/bar/plone_content_report
+"""
+
+response = context.REQUEST.RESPONSE
+cat = context.portal_catalog
+folder_path = '/'.join(context.getPhysicalPath())
+types = ['Document', 
+         'Image', 
+         'File', 
+         'Folder', 
+         'Landing Page', 
+         'Landing Row',
+         'Landing Row - Text',
+         'Link', 
+         'Homepage Teaser', 
+         'Image Teaser', 
+         'Large Homepage Teaser',
+         'Programme Teaser',
+         'Text Teaser',
+         'Top Teaser',
+         'Video Teaser',
+         'NWW Implementation Teaser',
+         'NWW longImage Teaser',]
+res = cat.searchResults(path=folder_path, 
+                        portal_type={'query':types, 
+                        'operator':'or'})
+
+print "STATUS^ITEM PATH^TYPE^TITLE^UID"
+for item in res:
+    try:
+        title = item.Title.decode("utf-8").encode("ascii", "xmlcharrefreplace")
+        print "Exported^%s^%s^%s^%s" % (item.getPath()[6:], item.Type, title, item.UID)
+    except:
+        print "Error^%s" % (item.getPath()[6:])
+
+response.setHeader("Content-type","text/tab-separated-values")
+response.setHeader("Content-disposition","attachment;filename=content-report.txt")
+
+return printed
